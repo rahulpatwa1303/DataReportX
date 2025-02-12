@@ -18,14 +18,13 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@radix-ui/react-label";
 import { Hourglass, Info, LoaderCircle, Play, Trash2 } from "lucide-react";
+import Head from "next/head";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import BackButton from "../../../../components/BackButton";
+import ChartsCard from "../component/ChartsCard";
 import QueryResultTable from "../component/QueryResultTable";
 import ReportForm from "../component/ReportForm";
-import ChartsCard from "../component/ChartsCard";
-import { chartType } from "../component/data";
-import { getKeyByValue } from "@/lib/helper";
 
 const NewConnection: React.FC = () => {
   const { toast } = useToast();
@@ -590,312 +589,320 @@ const NewConnection: React.FC = () => {
     return () => clearInterval(interval);
   }, [pingDisabled, timer]);
   return (
-    <div className=" mx-8 space-y-4 w-full">
-      <div className="flex flex-row ">
-        <BackButton />
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">
-            {pathname.includes("edit") ? "Edit" : "New"} Report
-          </h2>
-          <p className="text-muted-foreground">
-            Connect to your database securely and efficiently.
-          </p>
-        </div>
-      </div>
-      <Separator />
-      {connectionLoading ? (
-        <div className="flex justify-center items-center flex-col">
+    <>
+      <Head>
+        <title>
+          DataReportX |{pathname.includes("edit") ? "Edit" : "Create"} Report
+        </title>
+        <meta name="description" content="Detailed report data for Client X." />
+      </Head>
+      <div className=" mx-8 space-y-4 w-full">
+        <div className="flex flex-row ">
+          <BackButton />
           <div>
-            <LoaderCircle className="animate-spin" />
+            <h2 className="text-2xl font-bold tracking-tight">
+              {pathname.includes("edit") ? "Edit" : "New"} Report
+            </h2>
+            <p className="text-muted-foreground">
+              Connect to your database securely and efficiently.
+            </p>
           </div>
-          Fetching data...
         </div>
-      ) : (
-        <ResizablePanelGroup direction="vertical" className="w-full sm:w-1/2">
-          <ResizablePanel>
-            <ResizablePanelGroup direction="horizontal">
-              <ResizablePanel>
-                <ScrollArea className="overflow-x-auto">
-                  <div className="mx-8 space-y-4">
-                    <ReportForm
-                      connections={connections}
-                      formData={formData}
-                      handleChange={handleChange}
-                      handleSelectChange={handleSelectChange}
-                      errors={errors} // Pass empty errors for now
-                      queryExecutionResult={queryExecutionResult}
-                      handleDropDownChange={handleDropDownChange}
-                    />
-                    <div className="flex gap-4">
-                      <div className="relative">
-                        <Button onClick={handlePing} disabled={pingDisabled}>
-                          Ping
+        <Separator />
+        {connectionLoading ? (
+          <div className="flex justify-center items-center flex-col">
+            <div>
+              <LoaderCircle className="animate-spin" />
+            </div>
+            Fetching data...
+          </div>
+        ) : (
+          <ResizablePanelGroup direction="vertical" className="w-full sm:w-1/2">
+            <ResizablePanel>
+              <ResizablePanelGroup direction="horizontal">
+                <ResizablePanel>
+                  <ScrollArea className="overflow-x-auto">
+                    <div className="mx-8 space-y-4">
+                      <ReportForm
+                        connections={connections}
+                        formData={formData}
+                        handleChange={handleChange}
+                        handleSelectChange={handleSelectChange}
+                        errors={errors} // Pass empty errors for now
+                        queryExecutionResult={queryExecutionResult}
+                        handleDropDownChange={handleDropDownChange}
+                      />
+                      <div className="flex gap-4">
+                        <div className="relative">
+                          <Button onClick={handlePing} disabled={pingDisabled}>
+                            Ping
+                          </Button>
+
+                          {pingDisabled && (
+                            <div className="mt-2 absolute flex justify-center items-center gap-2 text-sm text-gray-500 text-xs ">
+                              <Hourglass size={12} /> {`${timer} s remaining`}
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          disabled={!pingResult}
+                          onClick={
+                            pathname.includes("edit")
+                              ? handleUpdateReport
+                              : handleSaveReport
+                          }
+                        >
+                          {pathname.includes("edit") ? "Update" : "Save"}
                         </Button>
 
-                        {pingDisabled && (
-                          <div className="mt-2 absolute flex justify-center items-center gap-2 text-sm text-gray-500 text-xs ">
-                            <Hourglass size={12} /> {`${timer} s remaining`}
-                          </div>
-                        )}
-                      </div>
-                      <Button
-                        disabled={!pingResult}
-                        onClick={
-                          pathname.includes("edit")
-                            ? handleUpdateReport
-                            : handleSaveReport
-                        }
-                      >
-                        {pathname.includes("edit") ? "Update" : "Save"}
-                      </Button>
-
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger
-                            asChild
-                            onClick={() => {
-                              !pingResult ? null : handleRun();
-                            }}
-                            className={`${
-                              !pingResult ? "opacity-50" : "opacity-100"
-                            }`}
-                          >
-                            <Button variant={"outline"}>Run</Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            {!pingResult ? (
-                              <p>You must first ping your connection</p>
-                            ) : (
-                              <p>
-                                This would the table and columns from the
-                                database {formData?.connectionName}
-                              </p>
-                            )}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger
-                            asChild
-                            onClick={() => {
-                              !formData?.chartType &&
-                              !formData?.xaxis &&
-                              formData?.yaxis?.length == 0
-                                ? null
-                                : setEnableChartPreview(true);
-                            }}
-                            className={`${
-                              !formData?.chartType &&
-                              !formData?.xaxis &&
-                              formData?.yaxis?.length == 0
-                                ? "opacity-50"
-                                : "opacity-100"
-                            }`}
-                          >
-                            <Button variant={"ghost"}>Preview</Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            {!formData?.chartType &&
-                            !formData?.xaxis &&
-                            formData?.yaxis?.length == 0 ? (
-                              <p>
-                                Please select a chart type, as well as values
-                                for the x-axis and y-axis.
-                              </p>
-                            ) : (
-                              <p>
-                                You can preview the chart with a limited number
-                                of rows.
-                              </p>
-                            )}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </div>
-                </ScrollArea>
-              </ResizablePanel>
-              <ResizableHandle withHandle />
-              <ResizablePanel maxSize={40}>
-                <div className="px-4 space-y-2">
-                  <div className="flex h-10 justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <Label
-                        htmlFor="query"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Query
-                      </Label>
-                      {Object.entries(dbRunResult).length == 0 && (
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger
+                              asChild
                               onClick={() => {
-                                !pingResult ? null : handleRunQuery();
+                                !pingResult ? null : handleRun();
                               }}
+                              className={`${
+                                !pingResult ? "opacity-50" : "opacity-100"
+                              }`}
                             >
-                              <Info size={14} />
+                              <Button variant={"outline"}>Run</Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              No suggestions are available. Click "Run" to get
-                              suggestions.
+                              {!pingResult ? (
+                                <p>You must first ping your connection</p>
+                              ) : (
+                                <p>
+                                  This would the table and columns from the
+                                  database {formData?.connectionName}
+                                </p>
+                              )}
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
-                      )}
-                    </div>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger
-                          asChild
-                          onClick={() => {
-                            !pingResult ? null : handleRunQuery();
-                          }}
-                        >
-                          <Button
-                            className="rounded-full p-4"
-                            variant={"ghost"}
-                          >
-                            <Play size={14} />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {!pingResult ? (
-                            <p>Please ping your connection first.</p>
-                          ) : (
-                            <p>
-                              Suggestions will be displayed from the selected
-                              connection: {formData?.connectionName}.
-                            </p>
-                          )}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                  <Card>
-                    <SQLQueryEditor
-                      suggestionsData={dbRunResult}
-                      setParentFormData={setFormData}
-                      parentFormData={formData}
-                    />
-                  </Card>
-                </div>
-              </ResizablePanel>
-            </ResizablePanelGroup>
-          </ResizablePanel>
 
-          <ResizableHandle withHandle />
-          <ResizablePanel maxSize={50}>
-            <ResizablePanelGroup direction="horizontal">
-              <ResizablePanel maxSize={50}>
-                <div className="flex w-full  items-center justify-center p-6">
-                  {queryExecutionResult.length == 0 ? (
-                    <span className="font-semibold">
-                      {" "}
-                      No query results available{" "}
-                    </span>
-                  ) : (
-                    <div className="flex flex-col gap-2 w-full">
-                      <span className="flex justify-between text-muted-foreground">
-                        <p>
-                          The maximum allowed data limit is set to 10 entries.
-                        </p>
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger
                               asChild
                               onClick={() => {
-                                setQueryExecutionResult([]);
+                                !formData?.chartType &&
+                                !formData?.xaxis &&
+                                formData?.yaxis?.length == 0
+                                  ? null
+                                  : setEnableChartPreview(true);
                               }}
+                              className={`${
+                                !formData?.chartType &&
+                                !formData?.xaxis &&
+                                formData?.yaxis?.length == 0
+                                  ? "opacity-50"
+                                  : "opacity-100"
+                              }`}
                             >
-                              <Button
-                                variant={"ghost"}
-                                className="rounded-full p-4"
-                              >
-                                <Trash2
-                                  size={18}
-                                  className="hover:text-rose-500"
-                                />
-                              </Button>
+                              <Button variant={"ghost"}>Preview</Button>
                             </TooltipTrigger>
-                            <TooltipContent>Clear data</TooltipContent>
+                            <TooltipContent>
+                              {!formData?.chartType &&
+                              !formData?.xaxis &&
+                              formData?.yaxis?.length == 0 ? (
+                                <p>
+                                  Please select a chart type, as well as values
+                                  for the x-axis and y-axis.
+                                </p>
+                              ) : (
+                                <p>
+                                  You can preview the chart with a limited
+                                  number of rows.
+                                </p>
+                              )}
+                            </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
-                      </span>
-                      <ScrollArea className="h-80 w-full rounded-md max-w-2xl overflow-y-auto overflow-x-auto">
-                        <QueryResultTable
-                          queryExecutionResult={queryExecutionResult}
-                        />
-                      </ScrollArea>
+                      </div>
                     </div>
-                  )}
-                </div>
-              </ResizablePanel>
-              <ResizableHandle withHandle />
-              <ResizablePanel
-                maxSize={50}
-                // defaultSize={30}
-                // className={`${
-                //   enableChartPreview ? "visible" : "hidden"
-                // } max-w-fit`}
-              >
-                <div className="flex w-full items-center justify-center p-6">
-                  {queryExecutionResult.length == 0 ? (
-                    <span className="font-semibold">
-                      {" "}
-                      No query results available{" "}
-                    </span>
-                  ) : (
-                    <div className="flex flex-col gap-2 w-full">
-                      <span className="flex justify-between text-muted-foreground">
-                        <p>
-                          The maximum allowed data limit is set to 10 entries.
-                        </p>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger
-                              asChild
-                              onClick={() => {
-                                setQueryExecutionResult([]);
-                              }}
-                            >
-                              <Button
-                                variant={"ghost"}
-                                className="rounded-full p-4"
+                  </ScrollArea>
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+                <ResizablePanel maxSize={40}>
+                  <div className="px-4 space-y-2">
+                    <div className="flex h-10 justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <Label
+                          htmlFor="query"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Query
+                        </Label>
+                        {Object.entries(dbRunResult).length == 0 && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger
+                                onClick={() => {
+                                  !pingResult ? null : handleRunQuery();
+                                }}
                               >
-                                <Trash2
-                                  size={18}
-                                  className="hover:text-rose-500"
-                                />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Clear data</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </span>
-                      <ScrollArea className="h-80 rounded-md border max-w-full overflow-x-auto">
-                        {!formData.chartType &&
-                        !formData.xaxis &&
-                        formData.yaxis.length == 0 ? (
-                          <span>No preview enabled</span>
-                        ) : (
-                          <ChartsCard
-                            data={queryExecutionResult}
-                            formData={formData}
-                          />
+                                <Info size={14} />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                No suggestions are available. Click "Run" to get
+                                suggestions.
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
-                      </ScrollArea>
+                      </div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger
+                            asChild
+                            onClick={() => {
+                              !pingResult ? null : handleRunQuery();
+                            }}
+                          >
+                            <Button
+                              className="rounded-full p-4"
+                              variant={"ghost"}
+                            >
+                              <Play size={14} />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {!pingResult ? (
+                              <p>Please ping your connection first.</p>
+                            ) : (
+                              <p>
+                                Suggestions will be displayed from the selected
+                                connection: {formData?.connectionName}.
+                              </p>
+                            )}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
-                  )}
-                </div>
-              </ResizablePanel>
-            </ResizablePanelGroup>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      )}
-    </div>
+                    <Card>
+                      <SQLQueryEditor
+                        suggestionsData={dbRunResult}
+                        setParentFormData={setFormData}
+                        parentFormData={formData}
+                      />
+                    </Card>
+                  </div>
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            </ResizablePanel>
+
+            <ResizableHandle withHandle />
+            <ResizablePanel maxSize={50}>
+              <ResizablePanelGroup direction="horizontal">
+                <ResizablePanel maxSize={50}>
+                  <div className="flex w-full  items-center justify-center p-6">
+                    {queryExecutionResult.length == 0 ? (
+                      <span className="font-semibold">
+                        {" "}
+                        No query results available{" "}
+                      </span>
+                    ) : (
+                      <div className="flex flex-col gap-2 w-full">
+                        <span className="flex justify-between text-muted-foreground">
+                          <p>
+                            The maximum allowed data limit is set to 10 entries.
+                          </p>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger
+                                asChild
+                                onClick={() => {
+                                  setQueryExecutionResult([]);
+                                }}
+                              >
+                                <Button
+                                  variant={"ghost"}
+                                  className="rounded-full p-4"
+                                >
+                                  <Trash2
+                                    size={18}
+                                    className="hover:text-rose-500"
+                                  />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Clear data</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </span>
+                        <ScrollArea className="h-80 w-full rounded-md max-w-2xl overflow-y-auto overflow-x-auto">
+                          <QueryResultTable
+                            queryExecutionResult={queryExecutionResult}
+                          />
+                        </ScrollArea>
+                      </div>
+                    )}
+                  </div>
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+                <ResizablePanel
+                  maxSize={50}
+                  // defaultSize={30}
+                  // className={`${
+                  //   enableChartPreview ? "visible" : "hidden"
+                  // } max-w-fit`}
+                >
+                  <div className="flex w-full items-center justify-center p-6">
+                    {queryExecutionResult.length == 0 ? (
+                      <span className="font-semibold">
+                        {" "}
+                        No query results available{" "}
+                      </span>
+                    ) : (
+                      <div className="flex flex-col gap-2 w-full">
+                        <span className="flex justify-between text-muted-foreground">
+                          <p>
+                            The maximum allowed data limit is set to 10 entries.
+                          </p>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger
+                                asChild
+                                onClick={() => {
+                                  setQueryExecutionResult([]);
+                                }}
+                              >
+                                <Button
+                                  variant={"ghost"}
+                                  className="rounded-full p-4"
+                                >
+                                  <Trash2
+                                    size={18}
+                                    className="hover:text-rose-500"
+                                  />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Clear data</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </span>
+                        <ScrollArea className="h-80 rounded-md border max-w-full overflow-x-auto">
+                          {!formData.chartType &&
+                          !formData.xaxis &&
+                          formData.yaxis.length == 0 ? (
+                            <span>No preview enabled</span>
+                          ) : (
+                            <ChartsCard
+                              data={queryExecutionResult}
+                              formData={formData}
+                            />
+                          )}
+                        </ScrollArea>
+                      </div>
+                    )}
+                  </div>
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        )}
+      </div>
+    </>
   );
 };
 

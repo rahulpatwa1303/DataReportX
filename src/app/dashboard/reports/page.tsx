@@ -10,11 +10,13 @@ import {
 } from "@/components/ui/table";
 import { LucideCirclePlus } from "lucide-react";
 import Link from "next/link";
-import { supabase } from "../../../../utils/supabase/client";
+// import { supabase } from "../../../../utils/supabase/client";
 import RedirectionButtons from "../../../components/RedirectionButtons";
+import { createClient } from "../../../../utils/supabase/server";
 
 async function fetchConnections() {
-  const supabases = supabase
+  // const supabases = supabase
+  const supabases = await createClient();
   const { data, error } = await supabases.from("reports").select("*");
   if (error) {
     console.error("Error fetching connections:", error.message);

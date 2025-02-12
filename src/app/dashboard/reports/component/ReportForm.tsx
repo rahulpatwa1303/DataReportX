@@ -76,9 +76,9 @@ function ReportForm({
               <SelectValue placeholder="Select a connection" />
             </SelectTrigger>
             <SelectContent>
-              {connections.map((connection) => (
+              {connections.map((connection,idx) => (
                 <SelectItem
-                  key={connection.id}
+                  key={`${connection.id}-${idx}`}
                   value={connection.database_name}
                 >
                   {connection.database_name}
@@ -108,8 +108,8 @@ function ReportForm({
               <SelectValue placeholder="Select a connection" />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(chartType).map(([key, value]) => (
-                <SelectItem key={key} value={value}>
+              {Object.entries(chartType).map(([key, value],idx) => (
+                <SelectItem key={`${key}-${idx}`} value={value}>
                   {value}
                 </SelectItem>
               ))}
@@ -143,8 +143,8 @@ function ReportForm({
                   No data available
                 </SelectItem>
               ) : (
-                Object.entries(queryExecutionResult[0]).map(([key, value]) => (
-                  <SelectItem key={key} value={String(key)}>
+                Object.entries(queryExecutionResult[0]).map(([key, value],idx) => (
+                  <SelectItem key={`${key}-${idx}`} value={String(key)}>
                     {String(key)}
                   </SelectItem>
                 ))
@@ -184,9 +184,9 @@ function ReportForm({
                   No data available
                 </DropdownMenuCheckboxItem>
               ) : (
-                Object.entries(queryExecutionResult[0]).map(([key, value]) => (
+                Object.entries(queryExecutionResult[0]).map(([key, value],idx) => (
                   <DropdownMenuCheckboxItem
-                    key={key}
+                    key={`${key}-${idx}`}
                     checked={formData?.yaxis.includes(key)} // Check if the key exists in formData.yaxis array
                     onCheckedChange={(e) => handleDropDownChange(e, key)} // Call handleDropDownChange to toggle the value
                   >

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { supabase } from "../../../../utils/supabase/client";
+import { createClient } from "../../../../utils/supabase/client";
+// import { supabase } from "../../../../utils/supabase/client";
 
-const supabases = supabase
-
+// const supabases = supabase
+const supabases = await createClient()
 // Helper function to insert data into Supabase
 async function insertReport(formData: any) {
   const { name, connectionId, query, xaxis, yaxis, chart_type, user_id } =

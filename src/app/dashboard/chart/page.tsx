@@ -1,10 +1,11 @@
 import { Card } from "@/components/ui/card";
-import ChartsCard from "../reports/component/ChartsCard";
 import Graph from "./component/Graph";
-import { supabase } from "../../../../utils/supabase/client";
+// import { supabase } from "../../../../utils/supabase/client";
+import { createClient } from "../../../../utils/supabase/server";
 
 async function fetchConnectionDetails(connectionId: number) {
-  const supabases = supabase
+  // const supabases = supabase
+  const supabases = await createClient()
   const { data, error } = await supabases
     .from("connections")
     .select("*")
@@ -19,7 +20,8 @@ async function fetchConnectionDetails(connectionId: number) {
 }
 
 async function fetchReports() {
-  const supabases = supabase
+  // const supabases = supabase
+  const supabases = await createClient()
   const { data, error } = await supabases.from("reports").select("*");
   if (error) {
     console.error("Error fetching reports:", error.message);
@@ -104,7 +106,7 @@ async function Charts() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 ">
           {results.map(({ reportId, queryResult, report }, index) => {
             return (
-              <div key={index}>
+              <div key={`report-${index}`}>
                 <Card>
                   {queryResult ? (
                     <Graph queryResult={queryResult} report={report} />

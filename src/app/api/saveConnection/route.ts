@@ -1,7 +1,11 @@
-import { supabase } from "../../../../utils/supabase/client";
+// import { supabase } from "../../../../utils/supabase/client";
 
-const supabases = supabase
+import { createClient } from "../../../../utils/supabase/client";
 
+// import { createClient } from "../../../../utils/supabase/server";
+
+// const supabases = supabase
+const supabases = await createClient()
 export async function POST(req: Request): Promise<Response> {
   try {
     const { user_id, host, port, database_name, username, password } =

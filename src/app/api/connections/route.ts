@@ -1,6 +1,8 @@
-import { supabase } from "../../../../utils/supabase/client";
+// import { supabase } from "../../../../utils/supabase/client";
+import { createClient } from "../../../../utils/supabase/client";
 
-const supabases = supabase
+// const supabases = supabase
+const supabases = await createClient()
 export async function GET(req: Request): Promise<Response> {
   try {
     // Fetch the connection details from Supabase

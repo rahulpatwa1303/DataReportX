@@ -11,11 +11,13 @@ import {
 import { LucideCirclePlus } from "lucide-react";
 import Link from "next/link";
 import { BiLogoPostgresql } from "react-icons/bi";
-import { supabase } from "../../../../utils/supabase/client";
+// import { supabase } from "../../../../utils/supabase/client";
 import RedirectionButtons from "../../../components/RedirectionButtons";
+import { createClient } from "../../../../utils/supabase/server";
 
 async function fetchConnections() {
-  const supabases = supabase
+  // const supabases = supabase
+  const supabases = await createClient();
   const { data, error } = await supabases.from("connections").select("*");
   if (error) {
     console.error("Error fetching connections:", error.message);
@@ -48,7 +50,7 @@ export default async function Page() {
           <TableBody>
             {connections.length > 0 ? (
               connections.map((connection) => (
-                <TableRow key={connection.id}>
+                <TableRow key={`${connection.id}-${connection.database_name}`}>
                   <TableCell className="font-medium">
                     {connection.database_name}
                   </TableCell>
